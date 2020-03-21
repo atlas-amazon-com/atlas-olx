@@ -9,13 +9,14 @@ public class MainClass {
 		try {
 			CartUI u = new CartUI();
 			
-			u.addToCart();
+			//u.addToCart();
 			
 			u.approveBidForSeller();
 			
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		}
+		System.out.println(" -: Thanks Visit Again :- ");
 	}
 
 }

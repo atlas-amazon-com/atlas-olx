@@ -1,56 +1,77 @@
 package dbConnection;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
 
 public class Cart {
+	Long CartId;
+	Long ClassifiedId;
+	Double BidPrice;
+	String Status;
+	Long BidderID;
 
-	public int addToCart(Object ClassifiedId, Object BidPrice, Object BidderID)
-			throws ClassNotFoundException, SQLException {
-		return DBConnection.executeUpdateFormat(
-				"INSERT INTO CART(CLASSIFIED_ID, BIDPRICE, BIDDER_ID) VALUES(%s, %s, %s)", 
-				ClassifiedId.toString(),BidPrice.toString(), BidderID.toString());
+	private static Scanner s = new Scanner(System.in);
+
+	public Cart() {
+		Status = "BID";
+//		BidderID = User.getLoggedinUserID();
 	}
 
-	public int approveBid(Object CartID) throws ClassNotFoundException, SQLException {
-		return DBConnection.executeUpdateFormat("UPDATE CART SET STATUS = 'APPROVE' WHERE CART_ID = %s",
-				CartID.toString());
+	void readCartId() {
+		System.out.println("Enter Cart Id:");
+		CartId =  Long.valueOf(s.nextLine().trim());
+	}
+	
+	void readClassifiedId() {
+		System.out.println("Enter Classified Id");
+		ClassifiedId = Long.valueOf(s.nextLine().trim());
 	}
 
-	public ResultSet getBidsForClassified(Object ClassifiedId) throws ClassNotFoundException, SQLException {
-		return DBConnection.executeQueryFormat(
-				"SELECT CART_ID, CLASSIFIED_ID, BIDPRICE, STATUS, BIDDER_ID FROM CART WHERE CLASSIFIED_ID = %s ",
-				ClassifiedId.toString());
+	void readBidPrice() {
+		System.out.println("Enter Bid Price");
+		BidPrice = Double.valueOf(s.nextLine().trim());
 	}
 
-	public ResultSet getBidsForBidder(Object Bidder) throws ClassNotFoundException, SQLException {
-		return DBConnection.executeQueryFormat(
-				"SELECT CART_ID, CLASSIFIED_ID, BIDPRICE, STATUS, BIDDER_ID FROM CART WHERE BIDDER_ID = %s ",
-				Bidder.toString());
-	}
-
-	private String getClassifiedsCSVForSeller(Object Seller) throws ClassNotFoundException, SQLException {
-		ResultSet rs = DBConnection.executeQueryFormat(
-				"select classified_id from classifieds where state = 'APPROVED' and seller_id = %s ",
-				Seller.toString());
-
-		StringBuilder sb = new StringBuilder();
-		
-		while (rs.next()) {
-			sb.append(rs.getLong(1));
-			sb.append(",");
+	void readBidderID() {
+		if (BidderID == null) {
+			// may not be required if session is maintained
+			System.out.println("Enter Bidder ID");
+			BidderID = Long.valueOf(s.nextLine().trim());
 		}
-		//4,5,
-		
-		sb.deleteCharAt(sb.length()-1);  //discard last comma
-		return sb.toString(); // 4,5
 	}
 
-	public ResultSet getBidsForSeller(Object Seller) throws ClassNotFoundException, SQLException {
-		String s = getClassifiedsCSVForSeller(Seller);
-		System.out.println("Classifieds by Seller :" + s);
-		
-		return DBConnection.executeQueryFormat("SELECT CART_ID, CLASSIFIED_ID, BIDPRICE, STATUS, BIDDER_ID "
-				+ "FROM CART WHERE CLASSIFIED_ID IN (%S) ", s.toString());
+	void readCart() {
+		readClassifiedId();
+		readBidPrice();
+		readBidderID();
+	}
+	
+	void writeCartHead() {
+		System.out.printf("%10s %13s %10s %10s %10s%n", "Cart_ID", "CLASSIFIED_ID", "BIDPRICE", "STATUS",
+				"BIDDER_ID");
+	}
+	
+	
+	void readRecord(ResultSet r) throws SQLException {
+		CartId = r.getLong(1);
+		ClassifiedId = r.getLong(2);
+		BidPrice = r.getDouble(3);
+		Status = r.getString(4);
+		BidderID = r.getLong(5);
 	}
 
+	void writeCartRow() {
+		System.out.printf("%10d %13d %10.2f %10s %10d %n", CartId, ClassifiedId, BidPrice, Status,
+				BidderID);
+	}
+
+	void writeResultSet(ResultSet r) throws SQLException {
+		writeCartHead();
+		while (r.next()) {
+			readRecord(r);
+			writeCartRow();
+		}
+	}
+	
 }
