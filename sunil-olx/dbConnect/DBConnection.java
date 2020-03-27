@@ -1,11 +1,61 @@
 package dbConnect;
 
+import java.io.*;
 import java.sql.*;
 import java.util.Formatter;
+import java.util.Properties;
 
 public class DBConnection {
 	static Connection conn;
 	static Statement stat;
+	static String cs1 = "jdbc:oracle:thin:@localhost:1521/xepdb1";
+	static String cs2 = "jdbc:oracle:thin:@localhost:1521/orc";
+	static String user="amazon", password="amazon";
+	
+	private DBConnection() {
+		readProperty();
+	}
+	
+	public static void writeProperty() {
+		try {
+			Properties properties = new Properties();
+			
+			properties.setProperty("url", "jdbc:oracle:thin:@localhost:1521/xepdb1");
+			properties.setProperty("user", "amazon");
+			properties.setProperty("password", "amazon");
+
+			File file = new File("DBConnnect.properties");
+			
+			FileOutputStream fileOut = new FileOutputStream(file);
+			properties.store(fileOut, null);
+			fileOut.close();
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void readProperty() {
+		try {
+			File file = new File("DBConnnect.properties");
+			FileInputStream fileIn = new FileInputStream(file);
+
+			Properties prop = new Properties( );
+			prop.load(fileIn);
+			 
+			cs1 = prop.getProperty("url");
+			user = prop.getProperty("user");
+			password = prop.getProperty("password");
+			
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}	
+
+	}
 
 	private static Connection initCon(String conStr, String usr, String pass)
 			throws SQLException, ClassNotFoundException {
@@ -14,12 +64,11 @@ public class DBConnection {
 	}
 
 	public static Connection getConnection() throws ClassNotFoundException, SQLException {
-		String cs1 = "jdbc:oracle:thin:@localhost:1521/xepdb1";
-		String cs2 = "jdbc:oracle:thin:@localhost:1521/orc";
 
+		 
 		if (conn == null) {
 			try {
-				conn = initCon(cs1, "amazon", "amazon");
+				conn = initCon(cs1, user, password);
 			} catch (SQLRecoverableException e) {
 				try {
 					conn = initCon(cs2, "amazon", "amazon");
